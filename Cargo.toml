@@ -5,6 +5,7 @@ edition = "2021"
 description = "Autonomous multi-turn coding agent in Rust with Tree-sitter AST, 13 tools, and pluggable LLM orchestration"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/kabirajpan/zene"
+homepage = "https://zenthralabs.dev"
 readme = "README.md"
 
 [dependencies]
