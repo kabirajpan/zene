@@ -77,11 +77,41 @@ Inside the interactive REPL:
 `zene` runs an autonomous multi-turn agentic loop:
 
 1. **Perception**: Scans files, AST tokens, diagnostics, and git state.
-2. **Reasoning & Tool Selection**: Dispatches tasks to high-capacity reasoning models with structured function definitions.
-3. **Execution & Approval Gate**: Executes filesystem mutations, searches, and terminal commands. Destructive actions can require interactive approval.
-4. **Self-Correction Loop**: Catches compilation errors, test failures, or unknown tools and feeds them back into the context window until fixed.
+2. **Sensory Reflex Pre-Filter**: Connectome evaluates intent and safety locks in < 15 microseconds.
+3. **Reasoning & Tool Selection**: Dispatches tasks to high-capacity reasoning models with structured function definitions tailored to the turn.
+4. **Execution & Approval Gate**: Executes filesystem mutations, searches, and terminal commands. Destructive actions can require interactive approval.
+5. **Self-Correction Loop**: Catches compilation errors, test failures, or unknown tools and feeds them back into the context window until fixed.
 
 ---
+
+## Bio-Connectome Sensory Reflex Engine (The "Fly Brain")
+
+`zene` embeds a **500-neuron biological connectome neural network** modeled after the adult *Drosophila melanogaster* (fruit fly) neural connectome (3,889 synapses, stored as an embedded 154 KB binary).
+
+### Why is it in the agent?
+
+Conventional LLM coding agents send full tool schemas to cloud APIs on every turn and rely entirely on the cloud model to decide whether to mutate files or execute commands. This creates three critical problems:
+1. **Safety vulnerabilities**: Models can hallucinate destructive shell commands (`rm -rf /`, `git reset --hard`, destructive drive formatting).
+2. **Context & Token Bloat**: Sending 13+ tool definitions on simple conceptual queries (*"how does this algorithm work?"*) wastes context window and increases API cost.
+3. **Tool Hallucinations**: Models often call filesystem search or file creation tools when the user simply said *"hello"*.
+
+### What is it helping?
+
+The Fly Brain acts as an **involuntary biological reflex gate** that runs locally *before* the remote LLM:
+
+1. **⚡ Sub-15 Microsecond Execution (< 0.015 ms)**:
+   Executes completely natively in pure Rust using a 30-step Euler numerical integration over the connectome RNN matrix. It requires **zero external runtimes** (no ONNX, no PyTorch, no LibTorch), zero background daemons, and zero network calls.
+
+2. **🚨 Giant Fiber Safety Reflex Lock**:
+   Modeled after the fruit fly's *giant fiber escape reflex*—an involuntary circuit that fires in milliseconds when a shadow descends—the connectome intercepts catastrophic workspace wipe commands in **< 15 µs**. Workspace buffer mutation is locked *before the prompt is ever transmitted to the LLM*.
+
+3. **🎯 Dynamic Intent & Tool Provisioning**:
+   Classifies incoming user intent into 5 discrete neural firing states to inject only the relevant tools into the conversation turn:
+   - **`DISCUSSION`**: Conceptual questions, architecture, greetings → Locks mutating tools; model cannot touch workspace files.
+   - **`INSPECTION`**: *"Where is X"*, *"find usages"*, *"git diff"* → Provisions high-speed read-only search tools (`read_file`, `list_directory`, `search`, `git_diff`).
+   - **`PLANNING`**: Architecture and refactoring roadmaps → Provisions planning graph tools.
+   - **`EXECUTION`**: *"Fix the compiler error"*, *"implement feature"*, *"run tests"* → Provisions full code mutation, edit, and terminal toolsets.
+   - **`REFLEX_LOCK`**: Catastrophic destruction → Disengages all tools and blocks execution.
 
 ## Architecture
 
