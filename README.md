@@ -2,7 +2,7 @@
 
 Autonomous multi-turn coding agent in Rust. Tree-sitter AST perception, 13 tools, 3-tier skill system, and pluggable LLM providers (Gemini, Groq).
 
-Built as the intelligence layer inside [Zenthree](https://zenthralabs.com/products/zenthra/apps/zenthree) — open-sourced for developers building autonomous coding agents or terminal workflows.
+Built as the intelligence layer inside [Zenthree](https://zenthralabs.dev/products/zenthra/apps/zenthree) — open-sourced for developers building autonomous coding agents or terminal workflows.
 
 ---
 
@@ -209,4 +209,4 @@ Test that your keys and network endpoints are operational:
 ## License
 
 [Apache 2.0](LICENSE) — free for personal and commercial open-source use.
-Part of [ZenthraLabs](https://zenthralabs.com) open research.
+Part of [ZenthraLabs](https://zenthralabs.dev) open research.
