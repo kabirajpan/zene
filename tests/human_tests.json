@@ -1,0 +1,277 @@
+{
+  "suite": "Zenthree Agent Human Message Benchmark",
+  "description": "30 realistic human-language test cases for autonomous tool calling across exploration, editing, file creation, multi-step features, and diagnostics.",
+  "total": 30,
+  "tests": [
+    {
+      "id": 1,
+      "title": "Explore mathematical functions in calculator",
+      "target_project": "calculator",
+      "category": "exploration",
+      "human_message": "Where are the mathematical functions defined in the calculator project and what operations are supported?",
+      "expected_tools": ["search", "read_file"],
+      "expected_behavior": "Agent explores src/App.jsx, identifies handleScientific, and summarizes sin, cos, tan, sqrt, sqr, log, ln, pi, e operations."
+    },
+    {
+      "id": 2,
+      "title": "Understand snake game loop and collision detection",
+      "target_project": "snake_game",
+      "category": "exploration",
+      "human_message": "Can you explain how the snake game's main loop and collision detection work?",
+      "expected_tools": ["read_file"],
+      "expected_behavior": "Agent reads src/App.jsx and explains the setInterval timer, boundary checks against GRID_SIZE, and self-collision checks."
+    },
+    {
+      "id": 3,
+      "title": "Inspect calculator dependencies",
+      "target_project": "calculator",
+      "category": "exploration",
+      "human_message": "What dependencies does the calculator app rely on and what versions are installed?",
+      "expected_tools": ["read_file"],
+      "expected_behavior": "Agent inspects package.json and lists react, react-dom, @vitejs/plugin-react, and vite."
+    },
+    {
+      "id": 4,
+      "title": "Examine Web Audio sound synthesis",
+      "target_project": "snake_game",
+      "category": "exploration",
+      "human_message": "Show me how the audio sound effects are synthesized in the snake game.",
+      "expected_tools": ["search", "read_file"],
+      "expected_behavior": "Agent locates playSound in src/App.jsx and explains the oscillator, frequency ramping, and gain envelope for eat, die, and turn."
+    },
+    {
+      "id": 5,
+      "title": "Find keyboard event handlers in calculator",
+      "target_project": "calculator",
+      "category": "exploration",
+      "human_message": "Find all places in the calculator where user keyboard events are handled.",
+      "expected_tools": ["search", "read_file"],
+      "expected_behavior": "Agent identifies handleKeyDown and the window keydown event listener in src/App.jsx."
+    },
+    {
+      "id": 6,
+      "title": "Inspect high score persistence in snake game",
+      "target_project": "snake_game",
+      "category": "exploration",
+      "human_message": "How is the high score saved and retrieved across browser reloads in the snake game?",
+      "expected_tools": ["search", "read_file"],
+      "expected_behavior": "Agent identifies localStorage.getItem('cyber_snake_high') and localStorage.setItem calls in src/App.jsx."
+    },
+    {
+      "id": 7,
+      "title": "Change default calculator theme",
+      "target_project": "calculator",
+      "category": "edit",
+      "human_message": "In the calculator, change the default theme from cyan to emerald so it loads in green mode.",
+      "expected_tools": ["read_file", "edit_file"],
+      "expected_behavior": "Agent surgically updates useState('cyan') to useState('emerald') in src/App.jsx."
+    },
+    {
+      "id": 8,
+      "title": "Increase initial snake speed",
+      "target_project": "snake_game",
+      "category": "edit",
+      "human_message": "Update the snake game's starting speed from 110ms to 90ms so it starts faster and feels more challenging.",
+      "expected_tools": ["read_file", "edit_file"],
+      "expected_behavior": "Agent replaces speed 110 with 90 in useState and startGame() inside src/App.jsx."
+    },
+    {
+      "id": 9,
+      "title": "Boost golden fruit reward points",
+      "target_project": "snake_game",
+      "category": "edit",
+      "human_message": "Change the golden food points in the snake game from 25 points to 50 points.",
+      "expected_tools": ["read_file", "edit_file"],
+      "expected_behavior": "Agent finds food.type === 'golden' ? 25 : 10 and updates 25 to 50 in src/App.jsx."
+    },
+    {
+      "id": 10,
+      "title": "Add keyboard clear shortcut 'c'",
+      "target_project": "calculator",
+      "category": "edit",
+      "human_message": "In the calculator, make pressing 'c' or 'C' on the keyboard clear the screen just like the Escape key does.",
+      "expected_tools": ["read_file", "edit_file"],
+      "expected_behavior": "Agent updates handleKeyDown to trigger handleClear() when e.key is 'c' or 'C'."
+    },
+    {
+      "id": 11,
+      "title": "Expand calculation history capacity",
+      "target_project": "calculator",
+      "category": "edit",
+      "human_message": "Increase the calculator's history limit so it remembers up to 50 previous calculations instead of 20.",
+      "expected_tools": ["read_file", "edit_file"],
+      "expected_behavior": "Agent modifies .slice(0, 19) to .slice(0, 49) in handleCalculate."
+    },
+    {
+      "id": 12,
+      "title": "Customize snake head corner radius",
+      "target_project": "snake_game",
+      "category": "edit",
+      "human_message": "In the snake game canvas renderer, make the snake's head rounder by increasing its corner radius to 8px.",
+      "expected_tools": ["read_file", "edit_file"],
+      "expected_behavior": "Agent changes roundRect corner radius for isHead from 6 to 8 in src/App.jsx."
+    },
+    {
+      "id": 13,
+      "title": "Change game over headline",
+      "target_project": "snake_game",
+      "category": "edit",
+      "human_message": "Change the game over heading text from 'SYSTEM CRASH' to 'NEON OVERLOAD'.",
+      "expected_tools": ["read_file", "edit_file"],
+      "expected_behavior": "Agent replaces 'SYSTEM CRASH' with 'NEON OVERLOAD' in the game over modal."
+    },
+    {
+      "id": 14,
+      "title": "Add cube (x³) button to scientific panel",
+      "target_project": "calculator",
+      "category": "edit",
+      "human_message": "Add a cube (x³) button to the calculator's scientific mode panel that multiplies the current number by itself three times.",
+      "expected_tools": ["read_file", "edit_file"],
+      "expected_behavior": "Agent adds 'cube' case in handleScientific (num * num * num) and adds the corresponding button to JSX."
+    },
+    {
+      "id": 15,
+      "title": "Increase snake playing grid size",
+      "target_project": "snake_game",
+      "category": "edit",
+      "human_message": "Enlarge the snake grid from 22 to 24 cells for a slightly bigger arena.",
+      "expected_tools": ["read_file", "edit_file"],
+      "expected_behavior": "Agent updates GRID_SIZE constant from 22 to 24 in src/App.jsx."
+    },
+    {
+      "id": 16,
+      "title": "Allow Enter key to restart snake game",
+      "target_project": "snake_game",
+      "category": "edit",
+      "human_message": "Ensure pressing Enter or Spacebar on the Game Over screen instantly restarts the game.",
+      "expected_tools": ["read_file", "edit_file"],
+      "expected_behavior": "Agent verifies and updates keydown listener for gameState === 'GAMEOVER'."
+    },
+    {
+      "id": 17,
+      "title": "Create audio constants module",
+      "target_project": "snake_game",
+      "category": "write",
+      "human_message": "Create a new file src/audio_constants.js in the snake game project exporting frequency and timing configurations for game sounds.",
+      "expected_tools": ["write_file"],
+      "expected_behavior": "Agent creates src/audio_constants.js with structured sound parameters for eat, die, turn, and levelup."
+    },
+    {
+      "id": 18,
+      "title": "Create theme definitions JSON",
+      "target_project": "calculator",
+      "category": "write",
+      "human_message": "Create a new JSON configuration file src/themes.json in the calculator project listing custom color palettes for neon, cyber, and obsidian.",
+      "expected_tools": ["write_file"],
+      "expected_behavior": "Agent writes src/themes.json with valid schema and color hex codes."
+    },
+    {
+      "id": 19,
+      "title": "Create pure math helper module",
+      "target_project": "calculator",
+      "category": "write",
+      "human_message": "Create a pure utility file src/math_utils.js with helper functions for add, subtract, multiply, divide, power, and factorial.",
+      "expected_tools": ["write_file"],
+      "expected_behavior": "Agent creates src/math_utils.js exporting functions with clean error handling (like divide by zero)."
+    },
+    {
+      "id": 20,
+      "title": "Write CONTRIBUTING guide for snake game",
+      "target_project": "snake_game",
+      "category": "write",
+      "human_message": "Create a CONTRIBUTING.md in the snake game directory explaining the project structure and how to add new power-up fruits.",
+      "expected_tools": ["write_file"],
+      "expected_behavior": "Agent writes comprehensive markdown file documenting codebase architecture and extension points."
+    },
+    {
+      "id": 21,
+      "title": "Create dedicated storage helper module",
+      "target_project": "snake_game",
+      "category": "write",
+      "human_message": "Create src/storage.js in the snake game to encapsulate localStorage reads and writes with try/catch fallbacks.",
+      "expected_tools": ["write_file"],
+      "expected_behavior": "Agent creates src/storage.js with getHighScore and saveHighScore helper functions."
+    },
+    {
+      "id": 22,
+      "title": "Create key bindings map module",
+      "target_project": "calculator",
+      "category": "write",
+      "human_message": "Create src/keybindings.js in the calculator project mapping keyboard key strings to calculator actions.",
+      "expected_tools": ["write_file"],
+      "expected_behavior": "Agent writes src/keybindings.js with lookup dictionary for digits, operators, and control keys."
+    },
+    {
+      "id": 23,
+      "title": "Add Audio Mute Toggle to Snake Game",
+      "target_project": "snake_game",
+      "category": "feature",
+      "human_message": "Please add a sound toggle button (Mute / Unmute) to the snake game header HUD and update playSound to honor it.",
+      "expected_tools": ["read_file", "edit_file"],
+      "expected_behavior": "Agent introduces isMuted state, adds a toggle button in the HUD, and checks !isMuted before triggering AudioContext."
+    },
+    {
+      "id": 24,
+      "title": "Add Memory (MS, MR, MC) keys to Calculator",
+      "target_project": "calculator",
+      "category": "feature",
+      "human_message": "Add Memory Store (MS), Memory Recall (MR), and Memory Clear (MC) buttons to the calculator with state tracking.",
+      "expected_tools": ["read_file", "edit_file"],
+      "expected_behavior": "Agent adds memory state (number or null), handlers for MS, MR, MC, and renders memory keys in the UI."
+    },
+    {
+      "id": 25,
+      "title": "Add Freeze Power-Up to Snake Game",
+      "target_project": "snake_game",
+      "category": "feature",
+      "human_message": "Add an icy blue 'freeze' power-up fruit that spawns occasionally and slows down the snake speed for 5 seconds.",
+      "expected_tools": ["read_file", "edit_file"],
+      "expected_behavior": "Agent adds 'freeze' food type, handles blue particle rendering, and temporarily modifies speed state with a timeout."
+    },
+    {
+      "id": 26,
+      "title": "Add Export Calculation History feature",
+      "target_project": "calculator",
+      "category": "feature",
+      "human_message": "Add an 'Export History' button to the calculation log panel that copies all past calculations formatted as markdown to the clipboard.",
+      "expected_tools": ["read_file", "edit_file"],
+      "expected_behavior": "Agent formats history array into markdown lines, calls navigator.clipboard.writeText, and shows a toast."
+    },
+    {
+      "id": 27,
+      "title": "Add Difficulty Selector to Snake Game",
+      "target_project": "snake_game",
+      "category": "feature",
+      "human_message": "Add a difficulty picker on the Snake start screen with options: Casual (140ms), Cyber (100ms), and Hyperdrive (65ms).",
+      "expected_tools": ["read_file", "edit_file"],
+      "expected_behavior": "Agent adds difficulty selection state, renders difficulty buttons in start overlay, and initializes speed accordingly."
+    },
+    {
+      "id": 28,
+      "title": "Check and fix lint/syntax in calculator",
+      "target_project": "calculator",
+      "category": "diagnostics",
+      "human_message": "Inspect the calculator project source code to make sure there are no syntax errors, unclosed tags, or broken imports.",
+      "expected_tools": ["read_file"],
+      "expected_behavior": "Agent inspects src/App.jsx, src/main.jsx, and index.html, confirming clean syntax."
+    },
+    {
+      "id": 29,
+      "title": "Prevent instant 180-degree self-collision in snake game",
+      "target_project": "snake_game",
+      "category": "diagnostics",
+      "human_message": "Review changeDirection in the snake game to confirm that a player cannot immediately reverse direction into their own neck.",
+      "expected_tools": ["read_file"],
+      "expected_behavior": "Agent reads changeDirection in src/App.jsx and validates the opposite direction guard logic."
+    },
+    {
+      "id": 30,
+      "title": "Implement multiply function in sample_project Rust crate",
+      "target_project": "sample_project",
+      "category": "feature",
+      "human_message": "In the sample_project Rust fixture, add a new public function 'multiply(a: i32, b: i32) -> i32' to src/lib.rs with a unit test.",
+      "expected_tools": ["read_file", "edit_file"],
+      "expected_behavior": "Agent edits src/lib.rs to add pub fn multiply and adds a test_multiply unit test."
+    }
+  ]
+}

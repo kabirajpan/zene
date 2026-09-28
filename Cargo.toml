@@ -1,0 +1,21 @@
+[package]
+name = "agent"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+reqwest = { version = "0.12", features = ["json", "blocking"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+dirs = "5"
+regex = "1.10"
+tree-sitter = "0.22"
+
+[dev-dependencies]
+tempfile = "3"
+
+[[bin]]
+name = "zene-agent"
+path = "src/bin/main.rs"
+
