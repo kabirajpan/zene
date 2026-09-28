@@ -4,7 +4,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# Load .env (checks crates/agent/.env, then apps/zenthree/.env)
+# Load .env (checks script dir, parent dir, or ~/.config/zene/.env)
 if [ -f "$SCRIPT_DIR/.env" ]; then
     set -a
     source "$SCRIPT_DIR/.env"
@@ -12,6 +12,10 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
 elif [ -f "$ROOT_DIR/.env" ]; then
     set -a
     source "$ROOT_DIR/.env"
+    set +a
+elif [ -f "$HOME/.config/zene/.env" ]; then
+    set -a
+    source "$HOME/.config/zene/.env"
     set +a
 fi
 
@@ -84,9 +88,8 @@ test_groq() {
 }
 
 echo -e "${BOLD}Gemini Models:${RESET}"
-test_gemini "gemini-3.5-flash"
 test_gemini "gemini-3.5-flash-lite"
-test_gemini "gemini-2.5-flash"
+test_gemini "gemini-3.5-flash"
 
 echo -e "\n${BOLD}Groq Models:${RESET}"
 test_groq "openai/gpt-oss-120b"

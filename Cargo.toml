@@ -2,6 +2,10 @@
 name = "agent"
 version = "0.1.0"
 edition = "2021"
+description = "Autonomous multi-turn coding agent in Rust with Tree-sitter AST, 13 tools, and pluggable LLM orchestration"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/kabirajpan/zene"
+readme = "README.md"
 
 [dependencies]
 reqwest = { version = "0.12", features = ["json", "blocking"] }
@@ -14,6 +18,10 @@ tree-sitter = "0.22"
 
 [dev-dependencies]
 tempfile = "3"
+
+[[bin]]
+name = "zene"
+path = "src/bin/zene.rs"
 
 [[bin]]
 name = "zene-agent"

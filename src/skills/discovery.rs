@@ -22,8 +22,13 @@ pub fn discover(workspace: impl AsRef<Path>) -> Result<DiscoveryReport, SkillErr
         let _ = report.registry.register(skill);
     }
 
-    // Tier 2: User base skills from home directory (~/.zenthree/skills)
+    // Tier 2: User base skills from home directory (~/.zene/skills or ~/.zenthree/skills)
     if let Some(home) = dirs::home_dir() {
+        let zene_user_dir = home.join(".zene").join("skills");
+        if zene_user_dir.exists() {
+            scan_directory(&zene_user_dir, SkillScope::User, &mut report);
+        }
+
         let user_skills_dir = home.join(".zenthree").join("skills");
         scan_directory(&user_skills_dir, SkillScope::User, &mut report);
 
@@ -33,8 +38,13 @@ pub fn discover(workspace: impl AsRef<Path>) -> Result<DiscoveryReport, SkillErr
         }
     }
 
-    // Tier 3: Project base skills from workspace
+    // Tier 3: Project base skills from workspace (.zene/skills or .zenthree/skills)
     let ws = workspace.as_ref();
+    let zene_project_dir = ws.join(".zene").join("skills");
+    if zene_project_dir.exists() {
+        scan_directory(&zene_project_dir, SkillScope::Project, &mut report);
+    }
+
     let project_skills_dir = ws.join(".zenthree").join("skills");
     scan_directory(&project_skills_dir, SkillScope::Project, &mut report);
 

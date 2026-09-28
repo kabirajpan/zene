@@ -2,21 +2,84 @@
 
 Autonomous multi-turn coding agent in Rust. Tree-sitter AST perception, 13 tools, 3-tier skill system, and pluggable LLM providers (Gemini, Groq).
 
-Built as the intelligence layer inside [Zenthree](https://zenthralabs.com/products/zenthra/apps/zenthree) — extracted here as a standalone crate.
+Built as the intelligence layer inside [Zenthree](https://zenthralabs.com/products/zenthra/apps/zenthree) — open-sourced for developers building autonomous coding agents or terminal workflows.
+
+---
+
+## Installation & CLI Quickstart
+
+### 1. Build and install globally
+
+```bash
+git clone git@github.com:kabirajpan/zene.git
+cd zene
+
+# Installs the `zene` and `zene-agent` binaries into ~/.cargo/bin
+cargo install --path .
+```
+
+Make sure `~/.cargo/bin` is in your `PATH`.
+
+### 2. Configure your API key
+
+ZENE supports **Google Gemini** (recommended) and **Groq**:
+
+```bash
+# Option A: In your current shell or ~/.bashrc / ~/.zshrc
+export GEMINI_API_KEY="your-gemini-key"
+# or
+export GROQ_API_KEY="your-groq-key"
+
+# Option B: Global user config
+mkdir -p ~/.config/zene
+echo 'GEMINI_API_KEY="your-gemini-key"' > ~/.config/zene/.env
+
+# Option C: Local project .env
+echo 'GEMINI_API_KEY="your-gemini-key"' > .env
+```
+
+Free API keys:
+- **Gemini**: [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
+- **Groq**: [https://console.groq.com/keys](https://console.groq.com/keys)
+
+### 3. Run ZENE
+
+```bash
+# Interactive REPL mode in current directory
+zene
+
+# One-shot command on current directory
+zene "Explore this repository and explain the project structure"
+
+# Target a specific workspace
+zene -w /path/to/project "Find and fix compiler warnings in src/main.rs"
+
+# Verbose mode (shows full tool inputs, outputs, and sub-millisecond reflex gate)
+zene -v "Implement a health check endpoint in main.rs"
+
+# Switch model or provider
+zene -p groq -m openai/gpt-oss-120b "Write unit tests for the parser"
+zene -p gemini -m gemini-3.5-flash-lite
+```
+
+Inside the interactive REPL:
+- `:help` — Show commands
+- `:verbose` — Toggle telemetry / raw tool trace
+- `:model <name>` — Switch model live
+- `:workspace <path>` — Change target directory
+- `:clear` — Reset conversation context
+- `:quit` or `:exit` — Exit session
 
 ---
 
 ## What it does
 
-`zene` runs an agentic loop that:
+`zene` runs an autonomous multi-turn agentic loop:
 
-1. Receives a prompt
-2. Calls an LLM provider with a tool schema
-3. Executes whichever tools the model requests (filesystem, search, terminal, git, planning)
-4. Feeds results back into the conversation
-5. Repeats until the model produces a final text response — or a loop/context cap is hit
-
-It handles the full execution spec: multi-tool batching, destructive action approval gates, error feedback as data, unknown tool recovery, network retry with backoff, context window pruning, and session export/import for persistence across restarts.
+1. **Perception**: Scans files, AST tokens, diagnostics, and git state.
+2. **Reasoning & Tool Selection**: Dispatches tasks to high-capacity reasoning models with structured function definitions.
+3. **Execution & Approval Gate**: Executes filesystem mutations, searches, and terminal commands. Destructive actions can require interactive approval.
+4. **Self-Correction Loop**: Catches compilation errors, test failures, or unknown tools and feeds them back into the context window until fixed.
 
 ---
 
@@ -24,75 +87,63 @@ It handles the full execution spec: multi-tool batching, destructive action appr
 
 ```
 src/
-├── agentic_loop/   # Core engine — the turn-by-turn orchestration loop
-├── ast/            # Tree-sitter AST engine for code-aware context
-├── context/        # Context window manager & conversation pruner
-├── orchestrator/   # AgentConfig, session persistence, BioReflexClient stub
-├── provider/       # LLM provider trait + Gemini & Groq implementations
-├── skills/         # 3-tier skill discovery & activation (Global → User → Project)
+├── agentic_loop/   # Core engine — turn-by-turn multi-turn orchestration loop
+├── ast/            # Tree-sitter AST engine for syntax-aware context
+├── context/        # Context window manager, git diffs, & conversation pruner
+├── orchestrator/   # BioReflexClient, intent classification, and session state
+├── provider/       # Pluggable LLM providers (Gemini, Groq)
+├── skills/         # 3-tier skill discovery & dynamic activation
 ├── tools/          # Tool registry + all 13 tool implementations
-├── traits/         # Provider and Tool traits
-├── types/          # Shared types: Message, ToolCall, AgentEvent, ApprovalRequest
-└── verification/   # Post-tool verification runner
+├── traits/         # Provider and Tool abstractions
+├── types/          # Message, ToolCall, AgentEvent, ApprovalRequest types
+└── verification/   # Post-tool verification & diagnostics runner
 ```
 
 ---
 
 ## Tools
 
-| Tool | Category | Risk |
-|---|---|---|
-| `read_file` | Filesystem | Read-only |
-| `write_file` | Filesystem | Destructive |
-| `edit_file` | Filesystem | Destructive |
-| `list_directory` | Filesystem | Read-only |
-| `delete_file` | Filesystem | Destructive |
-| `rename_file` | Filesystem | Destructive |
-| `search` | Search | Read-only |
-| `run_terminal` | Terminal | Destructive |
-| `get_diagnostics` | Diagnostics | Read-only |
-| `git_status` | Git | Read-only |
-| `git_diff` | Git | Read-only |
-| `create_plan` | Planning | Read-only |
-| `update_plan_step` | Planning | Read-only |
+All 13 tools are implemented natively in Rust:
 
-Destructive tools trigger an approval gate — the caller decides whether to approve, reject, or modify. The engine feeds rejections back as data so the model can recover.
+| Tool | Category | Action Type | Description |
+|---|---|---|---|
+| `read_file` | Filesystem | Read-only | Reads file contents with line slicing |
+| `write_file` | Filesystem | Destructive | Writes or creates files |
+| `edit_file` | Filesystem | Destructive | Targeted substring search & replace edits |
+| `delete_file` | Filesystem | Destructive | Deletes files with safety checks |
+| `rename_file` | Filesystem | Destructive | Renames or moves files |
+| `list_directory` | Filesystem | Read-only | Recursive directory tree listing |
+| `search` | Search | Read-only | High-speed ripgrep-style content & filename search |
+| `run_terminal` | Terminal | Destructive | Executes shell commands in the workspace |
+| `get_diagnostics` | Diagnostics | Read-only | Captures live compiler / linter diagnostics |
+| `git_status` | Git | Read-only | Git repository status |
+| `git_diff` | Git | Read-only | Git unstaged and staged diffs |
+| `create_plan` | Planning | Read-only | Initializes multi-step task plans |
+| `update_plan_step` | Planning | Read-only | Updates execution status of plan steps |
 
 ---
 
 ## Skills System
 
-Skills are markdown files (`SKILL.md`) with YAML frontmatter that inject domain context into the agent's system prompt on demand. Discovered across 3 tiers (highest wins):
+Skills are `SKILL.md` documents with YAML frontmatter that inject domain-specific context into the agent's instructions dynamically:
 
 ```
-1. Global  — built-in skills compiled into the binary (debug, explore, + 4 more)
-2. User    — ~/.zenthree/skills/<skill-name>/SKILL.md
-3. Project — <workspace>/.zenthree/skills/<skill-name>/SKILL.md
+1. Global  — Built-in skills compiled into the binary (debug, explore, refactor, test, docs, git)
+2. User    — ~/.zene/skills/<name>/SKILL.md (or ~/.zenthree/skills/)
+3. Project — <workspace>/.zene/skills/<name>/SKILL.md (or .zenthree/skills/)
 ```
 
-The model activates skills by calling the `activate_skill` tool. Project skills override user skills, which override global ones.
+Project skills take precedence over User skills, which take precedence over Global skills.
 
 ---
 
-## Providers
+## Using as a Rust Library
 
-| Provider | Env var | Default model |
-|---|---|---|
-| Groq | `GROQ_API_KEY` | `llama-3.3-70b-versatile` |
-| Gemini | `GEMINI_API_KEY` | `gemini-2.0-flash` |
-
-Key resolution order: environment variable → `.env` file in the current directory.
-
-Provider selection: set one or both keys. Groq is tried first (lower latency), falls back to Gemini automatically.
-
----
-
-## Quick start
+You can embed `zene` as a library inside your own Rust tools:
 
 ```toml
-# Cargo.toml
 [dependencies]
-agent = { path = "." }
+agent = { git = "https://github.com/kabirajpan/zene.git" }
 ```
 
 ```rust
@@ -101,57 +152,25 @@ use agent::{create_agent_for_model_and_workspace, types::ApprovalDecision};
 fn main() {
     let mut agent = create_agent_for_model_and_workspace(
         "gemini",
-        "gemini-2.0-flash",
-        "/path/to/your/project",
-    ).expect("API key not found");
+        "gemini-3.5-flash-lite",
+        "./",
+    ).expect("API credentials not found");
 
     let mut on_event = |ev| println!("{ev:?}");
-    let mut ask_approval = |_req| ApprovalDecision::Approve; // or show a UI prompt
+    let mut ask_approval = |_req| ApprovalDecision::Approve;
 
-    let reply = agent.run("Refactor the auth module to use a trait", &mut on_event, &mut ask_approval);
-    println!("{}", reply.unwrap());
+    let response = agent.run("Find and fix warnings in src/main.rs", &mut on_event, &mut ask_approval);
+    println!("{}", response.unwrap());
 }
 ```
 
-Set your key:
-
-```bash
-export GEMINI_API_KEY=your_key_here
-# or
-export GROQ_API_KEY=your_key_here
-# or create a .env file in the working directory
-```
-
 ---
 
-## Agent modes
+## Testing API Connectivity
 
-```rust
-// Full toolset, auto-discovers workspace skills
-create_agent_for_model_and_workspace("groq", "llama-3.3-70b-versatile", "./my-project");
-
-// Full toolset, uses cwd as workspace
-create_agent("gemini", "gemini-2.0-flash");
-
-// Read-only tools only (read_file + get_diagnostics)
-create_minimal_agent();
-
-// No workspace, no filesystem tools — general chat
-create_agent_without_workspace("gemini", "gemini-2.0-flash");
-```
-
----
-
-## Running the CLI
+Test that your keys and network endpoints are operational:
 
 ```bash
-# Run with default provider (auto-detected from env)
-cargo run --bin zene-agent
-
-# Verbose mode
-./run-verbose.sh
-
-# Test providers
 ./test-models.sh
 ```
 
@@ -159,6 +178,5 @@ cargo run --bin zene-agent
 
 ## License
 
-Apache 2.0 — see [LICENSE](LICENSE).
-
-Part of the [ZenthraLabs](https://zenthralabs.com) open research.
+[Apache 2.0](LICENSE) — free for personal and commercial open-source use.
+Part of [ZenthraLabs](https://zenthralabs.com) open research.

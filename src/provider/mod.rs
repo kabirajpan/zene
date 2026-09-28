@@ -9,7 +9,8 @@ pub use gemini::GeminiProvider;
 pub use groq::GroqProvider;
 
 /// Simple helper to get an API key either from environment variables
-/// or by looking for a `.env` file in current working directory and parent directories.
+/// or by looking for a `.env` file in current directory, parent directories,
+/// or user configuration directories (~/.config/zene/.env, ~/.zene/.env, ~/.zenthree/.env).
 pub fn get_key(name: &str) -> Option<String> {
     if let Ok(val) = std::env::var(name) {
         if !val.trim().is_empty() {
@@ -17,26 +18,53 @@ pub fn get_key(name: &str) -> Option<String> {
         }
     }
 
-    // Try finding .env file only in the current directory
-    let candidate_paths = [
-        "./.env",
-    ];
-
-    for path_str in &candidate_paths {
-        let path = Path::new(path_str);
-        if let Ok(content) = fs::read_to_string(path) {
-            for line in content.lines() {
-                let trimmed = line.trim();
-                if trimmed.starts_with('#') || !trimmed.contains('=') {
-                    continue;
-                }
-                let mut parts = trimmed.splitn(2, '=');
-                let key = parts.next().unwrap_or("").trim();
-                let val = parts.next().unwrap_or("").trim().trim_matches('"').trim_matches('\'');
-                if key == name && !val.is_empty() {
-                    return Some(val.to_string());
-                }
+    let parse_env_file = |path: &Path| -> Option<String> {
+        let content = fs::read_to_string(path).ok()?;
+        for line in content.lines() {
+            let trimmed = line.trim();
+            if trimmed.starts_with('#') || !trimmed.contains('=') {
+                continue;
             }
+            let mut parts = trimmed.splitn(2, '=');
+            let key = parts.next().unwrap_or("").trim();
+            let val = parts.next().unwrap_or("").trim().trim_matches('"').trim_matches('\'');
+            if key == name && !val.is_empty() {
+                return Some(val.to_string());
+            }
+        }
+        None
+    };
+
+    // 1. Current working directory and climb parent directories (up to 4 levels)
+    if let Ok(mut current) = std::env::current_dir() {
+        for _ in 0..5 {
+            let env_path = current.join(".env");
+            if let Some(val) = parse_env_file(&env_path) {
+                return Some(val);
+            }
+            if !current.pop() {
+                break;
+            }
+        }
+    }
+
+    // 2. Global user configuration directories
+    if let Some(config_dir) = dirs::config_dir() {
+        let path = config_dir.join("zene").join(".env");
+        if let Some(val) = parse_env_file(&path) {
+            return Some(val);
+        }
+    }
+
+    if let Some(home) = dirs::home_dir() {
+        let zene_home_env = home.join(".zene").join(".env");
+        if let Some(val) = parse_env_file(&zene_home_env) {
+            return Some(val);
+        }
+
+        let zenthree_home_env = home.join(".zenthree").join(".env");
+        if let Some(val) = parse_env_file(&zenthree_home_env) {
+            return Some(val);
         }
     }
 

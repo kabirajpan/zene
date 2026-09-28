@@ -51,7 +51,7 @@ pub fn generate_content(api_key: &str, prompt: &str) -> Result<String, String> {
         .map_err(|e| format!("Failed to build HTTP client: {e}"))?;
 
     let url = format!(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={}",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key={}",
         api_key.trim()
     );
 
@@ -109,8 +109,8 @@ pub fn generate_content(api_key: &str, prompt: &str) -> Result<String, String> {
 // ─── Full Provider trait implementation with tool-calling ────────────────────
 
 /// Default model for GeminiProvider.
-/// `gemini-2.5-flash` has a 1,000,000 TPM free-tier limit and full tool-calling support.
-const DEFAULT_GEMINI_MODEL: &str = "gemini-2.5-flash";
+/// `gemini-3.5-flash-lite` has high rate limits and full tool-calling support.
+const DEFAULT_GEMINI_MODEL: &str = "gemini-3.5-flash-lite";
 
 /// Gemini LLM backend implementing the unified `Provider` trait.
 /// Uses the Gemini `generateContent` endpoint with `tools` + `functionDeclarations`

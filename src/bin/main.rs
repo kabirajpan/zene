@@ -50,19 +50,39 @@ impl Default for CliConfig {
     }
 }
 
+fn print_version() {
+    println!("zene {}", env!("CARGO_PKG_VERSION"));
+}
+
+fn print_missing_keys_error() {
+    eprintln!("\n{RED}{BOLD}✗ Error: No AI provider credentials found.{RESET}");
+    eprintln!("\nZENE requires at least one API key to operate:\n");
+    eprintln!("  1. {CYAN}{BOLD}Google Gemini{RESET} (Recommended):");
+    eprintln!("     Get key: {DIM}https://aistudio.google.com/app/apikey{RESET}");
+    eprintln!("     Set it:  {GREEN}export GEMINI_API_KEY=\"your-key-here\"{RESET}\n");
+    eprintln!("  2. {CYAN}{BOLD}Groq{RESET} (Ultra-low latency inference):");
+    eprintln!("     Get key: {DIM}https://console.groq.com/keys{RESET}");
+    eprintln!("     Set it:  {GREEN}export GROQ_API_KEY=\"your-key-here\"{RESET}\n");
+    eprintln!("Ways to configure your keys:");
+    eprintln!("  • Shell environment:       {GREEN}export GEMINI_API_KEY=\"...\"{RESET}");
+    eprintln!("  • Project .env file:       {GREEN}echo 'GEMINI_API_KEY=...' >> .env{RESET}");
+    eprintln!("  • User config directory:   {GREEN}mkdir -p ~/.config/zene && echo 'GEMINI_API_KEY=...' > ~/.config/zene/.env{RESET}\n");
+}
+
 fn print_help() {
     println!("{BOLD}{CYAN}ZENE Agent CLI{RESET} — Autonomous Agentic Coding Engine");
     println!("Standalone CLI & IDE backend for autonomous codebase modification\n");
     println!("{BOLD}USAGE:{RESET}");
-    println!("  cargo run -p agent -- [OPTIONS] [PROMPT]");
-    println!("  ./scripts/agent-normal.sh [OPTIONS] [PROMPT]");
-    println!("  ./scripts/agent-verbose.sh [OPTIONS] [PROMPT]\n");
+    println!("  zene [OPTIONS] [PROMPT]");
+    println!("  cargo run --bin zene -- [OPTIONS] [PROMPT]");
+    println!("  ./run-normal.sh [OPTIONS] [PROMPT]\n");
     println!("{BOLD}OPTIONS:{RESET}");
     println!("  {GREEN}-v, --verbose{RESET}             Enable verbose diagnostic output (reflex latency, full tool args & outputs)");
-    println!("  {GREEN}-p, --provider <NAME>{RESET}     AI provider: 'gemini' or 'groq' (default: auto from .env)");
-    println!("  {GREEN}-m, --model <NAME>{RESET}        Model identifier (e.g. gemini-3.5-flash, openai/gpt-oss-120b)");
+    println!("  {GREEN}-p, --provider <NAME>{RESET}     AI provider: 'gemini' or 'groq' (default: auto from env)");
+    println!("  {GREEN}-m, --model <NAME>{RESET}        Model identifier (e.g. gemini-3.5-flash-lite, openai/gpt-oss-120b)");
     println!("  {GREEN}-w, --workspace <DIR>{RESET}     Target workspace directory (default: current directory)");
     println!("  {GREEN}--list-models{RESET}             List recommended models for each provider");
+    println!("  {GREEN}-V, --version{RESET}             Print version information");
     println!("  {GREEN}-h, --help{RESET}                Display this help message\n");
     println!("{BOLD}INTERACTIVE COMMANDS:{RESET} (when launched without [PROMPT])");
     println!("  {YELLOW}:help{RESET}                     Show command list");
@@ -75,11 +95,10 @@ fn print_help() {
 fn print_models() {
     println!("{BOLD}{CYAN}Available & Tested Models:{RESET}\n");
     println!("{BOLD}Gemini Models (Recommended - high rate limits):{RESET}");
-    println!("  • {GREEN}gemini-3.5-flash{RESET}        Fast, full function-calling, generous daily quota");
-    println!("  • {GREEN}gemini-3.5-flash-lite{RESET}   Ultra-lightweight, high throughput");
-    println!("  • {GREEN}gemini-2.5-flash{RESET}        Stable fallback (free tier limited to 20 req/day)\n");
+    println!("  • {GREEN}gemini-3.5-flash-lite{RESET}   Ultra-lightweight, high throughput (Default)");
+    println!("  • {GREEN}gemini-3.5-flash{RESET}        Fast, full function-calling, generous daily quota\n");
     println!("{BOLD}Groq Models (High speed on LPUs):{RESET}");
-    println!("  • {GREEN}openai/gpt-oss-120b{RESET}     High reasoning, full tool calling");
+    println!("  • {GREEN}openai/gpt-oss-120b{RESET}     High reasoning, full tool calling (Default for Groq)");
     println!("  • {GREEN}openai/gpt-oss-20b{RESET}      Fast lightweight reasoning");
     println!("  • {YELLOW}qwen/qwen3.8-27b{RESET}        Note: strict 200k daily token limit on free tier\n");
 }
@@ -94,6 +113,10 @@ fn parse_args() -> Result<CliConfig, i32> {
         match args[i].as_str() {
             "-h" | "--help" => {
                 print_help();
+                return Err(0);
+            }
+            "-V" | "--version" => {
+                print_version();
                 return Err(0);
             }
             "--list-models" => {
@@ -290,7 +313,7 @@ fn run_interactive(mut config: CliConfig) {
     let mut agent = match agent_opt {
         Some(a) => a,
         None => {
-            eprintln!("{RED}Failed to initialize agent. Check your API keys in .env (GEMINI_API_KEY or GROQ_API_KEY).{RESET}");
+            print_missing_keys_error();
             return;
         }
     };
@@ -393,7 +416,7 @@ fn run_interactive(mut config: CliConfig) {
     }
 }
 
-fn main() {
+pub fn main() {
     let config = match parse_args() {
         Ok(c) => c,
         Err(code) => std::process::exit(code),
@@ -404,10 +427,9 @@ fn main() {
 
 
         let mut agent = match agent_opt {
-
             Some(a) => a,
             None => {
-                eprintln!("{RED}Failed to initialize agent. Check your API keys in .env (GEMINI_API_KEY or GROQ_API_KEY).{RESET}");
+                print_missing_keys_error();
                 std::process::exit(1);
             }
         };

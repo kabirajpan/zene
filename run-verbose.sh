@@ -4,15 +4,16 @@ set -e
 # Directory where the command was invoked
 CALL_DIR="$(pwd)"
 
-# Resolve directories
+# Resolve script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# Load .env (checks crates/agent/.env, then apps/zenthree/.env)
+# Load .env (checks script dir, parent workspace dir, or ~/.config/zene/.env)
 if [ -f "$SCRIPT_DIR/.env" ]; then
-    export $(grep -v '^#' "$SCRIPT_DIR/.env" | xargs -d '\n')
-elif [ -f "$ROOT_DIR/.env" ]; then
-    export $(grep -v '^#' "$ROOT_DIR/.env" | xargs -d '\n')
+    set -a; source "$SCRIPT_DIR/.env"; set +a
+elif [ -f "$SCRIPT_DIR/../../.env" ]; then
+    set -a; source "$SCRIPT_DIR/../../.env"; set +a
+elif [ -f "$HOME/.config/zene/.env" ]; then
+    set -a; source "$HOME/.config/zene/.env"; set +a
 fi
 
 # Check if user explicitly provided a workspace argument
@@ -24,9 +25,13 @@ for arg in "$@"; do
     fi
 done
 
-cd "$ROOT_DIR"
-if [ "$has_ws" = true ]; then
-    cargo run -p agent --bin zene-agent -- --verbose "$@"
+WS_ARGS=()
+if [ "$has_ws" = false ]; then
+    WS_ARGS=(--workspace "$CALL_DIR")
+fi
+
+if [ -f "$SCRIPT_DIR/Cargo.toml" ]; then
+    cargo run --manifest-path "$SCRIPT_DIR/Cargo.toml" --bin zene -- --verbose "${WS_ARGS[@]}" "$@"
 else
-    cargo run -p agent --bin zene-agent -- --verbose --workspace "$CALL_DIR" "$@"
+    cargo run --bin zene -- --verbose "${WS_ARGS[@]}" "$@"
 fi
